@@ -4,10 +4,9 @@ import ListGroup from "react-bootstrap/ListGroup";
 import { BsPencilSquare } from "react-icons/bs";
 import { LinkContainer } from "react-router-bootstrap";
 import { useAppContext } from "../libs/contextLib";
-import LoaderButton from "../components/LoaderButton";
 import { onError } from "../libs/errorLib";
 import { cleanInspectionList, sortDataBySubject, dataFilterCustom } from "../libs/dataFilterLib";
-import { loadDailySchedule, loadAllInspectionTemplates, deleteScheduledInspection } from "../libs/apiLib";
+import { loadDailySchedule, loadAllInspectionTemplates, insertIntoSnowflakeINF } from "../libs/apiLib";
 import Accordion from "react-bootstrap/Accordion";
 import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
@@ -19,7 +18,7 @@ import "./Home.css";
 import { checkCognitoGroups } from "../libs/awsLib";
 import { Form } from 'react-bootstrap';
 
-export default function AllInspections() {  
+export default function AllInspections() {
     const history = useHistory();
     const [notes, setNotes] = useState([]);
     // const [defaultNotes, setDefaultNotes] = useState([]);
@@ -29,6 +28,9 @@ export default function AllInspections() {
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [checkedItems, setCheckedItems] = useState([]);
+    const [otherValue, setOtherValue] = useState('');
+    const [isChecked, setIsChecked] = useState(false);
     // const testEnv = process.env.REACT_APP_STAGE === 'prod' ? true  : false;
 
     useEffect(() => {
@@ -42,7 +44,7 @@ export default function AllInspections() {
                 setNotes(updatedNotes);
                 setSchedule(sortedSchedules);
                 setDefaultFilterData([updatedNotes, sortedSchedules]);
-                const adminCheck= await checkCognitoGroups();
+                const adminCheck = await checkCognitoGroups();
                 setIsAdmin(adminCheck);
             } catch (e) {
                 onError(e);
@@ -55,42 +57,41 @@ export default function AllInspections() {
     }, [branchSelection]);
 
 
-  const [isOpen, setIsOpen] = useState([]);
-  const [selectedOptions, setSelectedOptions] = useState([]);
-  const [inputValue, setInputValue] = useState('');
+    const [isOpen, setIsOpen] = useState([]);
+    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [inputValue, setInputValue] = useState('');
 
-  const options = [
-    { value: 'Short of manpower', label: 'Short of manpower' },
-    { value: 'Low priority', label: 'Low priority' },
-    { value: 'Duplicate inspection', label: 'Duplicate inspection' },
-    { value: 'Inadequate time', label: 'Inadequate time' },
-    { value: 'Lack tools & parts ', label: 'Lack tools & parts' },
-    { value: 'EQ still in repair', label: 'EQ still in repair' },
-    { value: 'Plant shutdown', label: 'Plant shutdown' },
-    { value: 'Other:', label: 'Other:' },
-  ];
+    const options = [
+        { value: 'Short of manpower', label: 'Short of manpower' },
+        { value: 'Low priority', label: 'Low priority' },
+        { value: 'Duplicate inspection', label: 'Duplicate inspection' },
+        { value: 'Inadequate time', label: 'Inadequate time' },
+        { value: 'Lack tools & parts', label: 'Lack tools & parts' },
+        { value: 'EQ still in repair', label: 'EQ still in repair' },
+        { value: 'Plant shutdown', label: 'Plant shutdown' },
 
-  const handleOptionToggle = (e,optionValue) => {
-    e.stopPropagation();
+    ];
 
-    const index = selectedOptions.indexOf(optionValue);
-    if (index > -1) {
-      setSelectedOptions([...selectedOptions.slice(0, index), ...selectedOptions.slice(index + 1)]);
-    } else {
-      setSelectedOptions([...selectedOptions, optionValue]);
-    }
-  };
+    const handleOptionToggle = (e, optionValue) => {
 
-  const handleInputChange = (event) => {
-    event.stopPropagation();
-    setInputValue(event.target.value);
-  };
+        const index = selectedOptions.indexOf(optionValue);
+        if (index > -1) {
+            setSelectedOptions([...selectedOptions.slice(0, index), ...selectedOptions.slice(index + 1)]);
+        } else {
+            setSelectedOptions([...selectedOptions, optionValue]);
+        }
+    };
 
-  const handleSubmit = (event) => {
-    event.stopPropagation();
-    console.log('Selected options:', selectedOptions);
-    console.log('Input value:', inputValue);
-  };
+    const handleInputChange = (event) => {
+        event.preventDefault();
+        setInputValue(event.target.value);
+    };
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+   
+        
+    };
 
     function compare(a, b) {
         const descriptionA = a.description.toUpperCase();
@@ -105,31 +106,62 @@ export default function AllInspections() {
         return comparison;
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         const array = [];
         for (let index = 0; index < notes.length; index++) {
-            
-           array.push(false) 
+
+            array.push(false)
         }
         setIsOpen(array)
     }, [notes])
 
-    async function handleDelete(e,index) {
-        e.stopPropagation();
+    async function handleDelete(e, index) {
+        e.preventDefault();
 
-        console.log("asdas ",index);
+        console.log("asdas ", index);
 
         const array = [...isOpen];
-        
+
         array[index] = !array[index]
 
         setIsOpen(array)
+
+
+    }
+
+    async function handleFinalSubmit(eqID,branch){
+
+        console.log("inputValue ",inputValue);
+        const reasons = checkedItems.toString() +", "+ otherValue;
+        console.log("selectedOptions ", reasons);
         
-        
+
+        const username = await Auth.currentAuthenticatedUser();
+
+        const timestamp = Date.now();
+    
+        console.log("username ",username.attributes.email);
+
+        const dataObject = {
+            daytime: timestamp,
+            username: username.attributes.email,
+            eqID: eqID,
+            branch: branch,
+            reasons: reasons,
+            comments:inputValue
+        };
+
+        console.log("data ",dataObject);
+
+        const insertResponse = await insertIntoSnowflakeINF(dataObject);
+
+        console.log("------",insertResponse);
+
+
     }
 
     async function handleRedirect(e, dayAtMidPst, eqID, branch) {
-        e.stopPropagation();
+        e.preventDefault();
         let daysAtMidPstForCurrentEqID = [];
 
         if (dayAtMidPst == 0) {
@@ -141,19 +173,37 @@ export default function AllInspections() {
                 daysAtMidPstForCurrentEqID = selectedInspections.filter(inspections => inspections.eqID == eqID);
             }
 
-            localStorage.setItem('selectedEqIDDetails', JSON.stringify({"eqIDDetails": daysAtMidPstForCurrentEqID}));
+            localStorage.setItem('selectedEqIDDetails', JSON.stringify({ "eqIDDetails": daysAtMidPstForCurrentEqID }));
         }
-        
+
         history.push(`/inspections/${encodeURIComponent(eqID).replace(/\*/g, "%2A")}/${dayAtMidPst}`)
     }
 
-    function setData (data) {
+    function setData(data) {
         const notes = data[0];
         const schedules = data[1];
 
         setNotes(notes);
         setSchedule(schedules);
     }
+
+    const handleCheckboxChange = (event) => {
+
+        const { value, checked } = event.target;
+        if (checked) {
+            setCheckedItems([...checkedItems, value]);
+        } else {
+            setCheckedItems(checkedItems.filter((item) => item !== value));
+        }
+    };
+
+    const handleCheckboxChangeOther = () => {
+        setIsChecked(!isChecked);
+    };
+
+    const handleOtherInputChange = (event) => {
+        setOtherValue(event.target.value);
+    };
 
     function renderSchedule(schedule) {
         return (
@@ -178,94 +228,110 @@ export default function AllInspections() {
             </>
         )
     }
-    
+
     function renderInspectionList(notes, use) {
         return (
             <>
                 {notes.map(({ eqID, branch, description, createdAt, dayAtMidPst }, index) => (
                     (eqID !== "Truck") ? (
-                        <LinkContainer key={`${use}-${eqID}-${index}`} to={`#-${index}`} onClick={(e) => handleRedirect(e, use == "scheduled" ? dayAtMidPst : 0, eqID, branch)}>
-                            <ListGroup.Item action>
-                                
-                                <span className="font-weight-bold">
-                                    {eqID}-{description}
-                                </span>
-                                <br />
-                                <span className="text-muted">
-                                    Created: {new Date(createdAt).toLocaleString()}
-                                </span>
-                                {use == "scheduled"
-                                    && <div>
-                                    <Button variant="primary" onClick={(e) => handleDelete(e,index)}>
-                                       Scheduled Inspection Not Completed 1
+                        <div className="inspection-item" key={`${use}-${eqID}-${index}`}>
+                            <a className="inspection-link font-weight-bold" href={`#${index}`} onClick={(e) => handleRedirect(e, use == "scheduled" ? dayAtMidPst : 0, eqID, branch)}>
+                                {eqID}-{description}
+                            </a>
+                            <br />
+                            <span className="inspection-date text-muted">Created: {new Date(createdAt).toLocaleString()}</span>
+                            {use == "scheduled" && (
+                                <div className="inspection-actions">
+                                    <Button variant="primary" onClick={(e) => handleDelete(e, index)}>Scheduled Inspection Not Completed</Button>
+                                    {isOpen[index] && (
+                                        <div className="inspection-form">
+                                            <Form onSubmit={handleSubmit} className="inspection-form">
+                                                <Form.Label className="inspection-form-label">Reasons:</Form.Label>
+                                                <div className="other-container">
+                                                    {options.map((option) => (
+                                                        <Form.Check
+                                                            key={option.value}
+                                                            type="checkbox"
+                                                            label={option.label}
+                                                            value={option.value}
+                                                            checked={checkedItems.includes(option.value)}
+                                                            onChange={handleCheckboxChange}
+                                                            className="form-check-label m-0 py-0 d-flex"
+                                                        />
+                                                    ))
+                                                    }
+
+                                                           <Form.Check
+                                                            key="other"
+                                                            type="checkbox"
+                                                            label="Other:"
+                                                            value="Other"
+                                                            checked={isChecked}
+                                                            onChange={handleCheckboxChangeOther}
+                                                            className="form-check-label m-0 py-0 d-flex"
+                                                        />
+                                                    
+                                                        {isChecked && (
+                                                            <input type="text" value={otherValue} onChange={handleOtherInputChange} />
+                                                        )}
+                                                    
+                                                </div>
+                                                <Form.Group controlId="inputValue" className="form-input">
+                                                    <Form.Label className="inspection-form-label ">Comments:</Form.Label>
+                                                    <Form.Control type="text" value={inputValue} onChange={handleInputChange} className="form-control" />
+                                                </Form.Group>
+                                                <Button 
+                                                className="inspection-form-submit" 
+                                                type="submit"
+                                                onClick={(e)=> handleFinalSubmit(eqID, branch)}>Submit</Button>
+                                            </Form>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div
+                            key={`${use}-${eqID}-${index}`}
+                        >
+
+                            <a className="font-weight-bold" href="/dvcr">
+                                {eqID}-{description}
+                            </a>
+                            <br />
+                            <span className="text-muted">
+                                Created: {new Date(createdAt).toLocaleString()}
+                            </span>
+                            {use == "scheduled"
+                                && <div>
+                                    <Button variant="primary" onClick={(e) => handleDelete(e, index , eqID, branch )}>
+                                        Scheduled Inspection Not Completed 2
                                     </Button>
                                     {isOpen[index] && (
-                                      <div className="border:0">
-                                        
-                                        <Form  onSubmit={handleSubmit}>
-                                        <Form.Label>Reasons</Form.Label>
-                                          {options.map((option) => (
-                                            <Form.Check
-                                              key={option.value}
-                                              type="checkbox"
-                                              label={option.label}
-                                              value={option.value}
-                                              checked={selectedOptions.includes(option.value)}
-                                              onChange={(e) => handleOptionToggle(e,option.value)}
-                                            />
-                                          ))}
-                                          <Form.Group controlId="inputValue">
-                                            <Form.Label>Comments:</Form.Label>
-                                            <Form.Control type="text" value={inputValue} onChange={handleInputChange} />
-                                          </Form.Group>
-                                          <Button type="submit">Submit</Button>
-                                        </Form>
-                                      </div>
+                                        <div className="border:0">
+
+                                            <Form onSubmit={handleSubmit}>
+                                                <Form.Label>Reasons</Form.Label>
+                                                {options.map((option) => (
+                                                    <Form.Check
+                                                        key={option.value}
+                                                        type="checkbox"
+                                                        label={option.label}
+                                                        value={option.value}
+                                                        checked={selectedOptions.includes(option.value)}
+                                                        onChange={(e) => handleOptionToggle(e, option.value)}
+                                                    />
+                                                ))}
+                                                <Form.Group controlId="inputValue">
+                                                    <Form.Label>Comments:</Form.Label>
+                                                    <Form.Control type="text" value={inputValue} onChange={handleInputChange} />
+                                                </Form.Group>
+                                                <Button type="submit">Submit</Button>
+                                            </Form>
+                                        </div>
                                     )}
-                                  </div>}
-                            </ListGroup.Item>
-                        </LinkContainer>
-                    ) : (
-                        <LinkContainer key={`${use}-${eqID}-${index}`} to={`/dvcr`}>
-                            <ListGroup.Item action>
-                                <span className="font-weight-bold">
-                                    {eqID}-{description}
-                                </span>
-                                <br />
-                                <span className="text-muted">
-                                    Created: {new Date(createdAt).toLocaleString()}
-                                </span>
-                                {use == "scheduled"
-                                    && <div>
-                                    <Button variant="primary" onClick={(e) => handleDelete(e,index)}>
-                                       Scheduled Inspection Not Completed 2
-                                    </Button> 
-                                    {isOpen[index] && (
-                                      <div className="border:0">
-                                        
-                                        <Form  onSubmit={handleSubmit}>
-                                        <Form.Label>Reasons</Form.Label>
-                                          {options.map((option) => (
-                                            <Form.Check
-                                              key={option.value}
-                                              type="checkbox"
-                                              label={option.label}
-                                              value={option.value}
-                                              checked={selectedOptions.includes(option.value)}
-                                              onChange={(e) => handleOptionToggle(e,option.value)}
-                                            />
-                                          ))}
-                                          <Form.Group controlId="inputValue">
-                                            <Form.Label>Comments:</Form.Label>
-                                            <Form.Control type="text" value={inputValue} onChange={handleInputChange} />
-                                          </Form.Group>
-                                          <Button type="submit">Submit</Button>
-                                        </Form>
-                                      </div>
-                                    )}
-                                  </div>}
-                            </ListGroup.Item>
-                        </LinkContainer>
+                                </div>}
+                        </div>
                     )
                 ))}
             </>
@@ -273,14 +339,14 @@ export default function AllInspections() {
     }
 
 
-    function catSelect(categories){
+    function catSelect(categories) {
 
     }
 
     function renderNotesList(notes) {
         return (
             <>
-                {!loading &&  <BranchFilters onSelect={catSelect}/>}
+                {!loading && <BranchFilters onSelect={catSelect} />}
                 <Searchbar
                     dataFilter={dataFilterCustom}
                     setData={setData}
