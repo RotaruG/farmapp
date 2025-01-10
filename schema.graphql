@@ -1,0 +1,876 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Coordinates @aws_api_key @aws_cognito_user_pools {
+  position: [LatLng]
+  radius: Float
+}
+
+type Job @aws_api_key @aws_cognito_user_pools {
+  county: String!
+  createdAt: AWSDateTime!
+  description: String
+  geofence(filter: ModelJobGeofenceFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelJobGeofenceConnection
+  id: ID!
+  jobNo: String!
+  jobsiteAddress: String!
+  manager: User
+  managerId: ID!
+  name: String!
+  status: JobStatusEnum!
+  subcontractorId: ID
+  updatedAt: AWSDateTime!
+}
+
+type JobGeofence @aws_api_key @aws_cognito_user_pools {
+  coordinates: Coordinates
+  createdAt: AWSDateTime!
+  id: ID!
+  jobId: ID!
+  name: String
+  type: GeofenceTypeEnum
+  updatedAt: AWSDateTime!
+}
+
+type LatLng @aws_api_key @aws_cognito_user_pools {
+  lat: Float!
+  lng: Float!
+}
+
+type ModelJobConnection @aws_api_key @aws_cognito_user_pools {
+  items: [Job]!
+  nextToken: String
+}
+
+type ModelJobGeofenceConnection @aws_api_key @aws_cognito_user_pools {
+  items: [JobGeofence]!
+  nextToken: String
+}
+
+type ModelRolePermissionsConnection {
+  items: [RolePermissions]!
+  nextToken: String
+}
+
+type ModelSubcontractorConnection @aws_api_key @aws_cognito_user_pools {
+  items: [Subcontractor]!
+  nextToken: String
+}
+
+type ModelSubcontractorContactConnection @aws_api_key @aws_cognito_user_pools {
+  items: [SubcontractorContact]!
+  nextToken: String
+}
+
+type ModelUserConnection @aws_api_key @aws_cognito_user_pools {
+  items: [User]!
+  nextToken: String
+}
+
+type ModelUserRoleConnection {
+  items: [UserRole]!
+  nextToken: String
+}
+
+type Mutation {
+  createJob(condition: ModelJobConditionInput, input: CreateJobInput!): Job @aws_api_key @aws_cognito_user_pools
+  createJobGeofence(condition: ModelJobGeofenceConditionInput, input: CreateJobGeofenceInput!): JobGeofence @aws_api_key @aws_cognito_user_pools
+  createRolePermissions(condition: ModelRolePermissionsConditionInput, input: CreateRolePermissionsInput!): RolePermissions
+  createSubcontractor(condition: ModelSubcontractorConditionInput, input: CreateSubcontractorInput!): Subcontractor @aws_api_key @aws_cognito_user_pools
+  createSubcontractorContact(condition: ModelSubcontractorContactConditionInput, input: CreateSubcontractorContactInput!): SubcontractorContact @aws_api_key @aws_cognito_user_pools
+  createUser(condition: ModelUserConditionInput, input: CreateUserInput!): User @aws_api_key
+  createUserRole(condition: ModelUserRoleConditionInput, input: CreateUserRoleInput!): UserRole
+  deleteJob(condition: ModelJobConditionInput, input: DeleteJobInput!): Job @aws_api_key @aws_cognito_user_pools
+  deleteJobGeofence(condition: ModelJobGeofenceConditionInput, input: DeleteJobGeofenceInput!): JobGeofence @aws_api_key @aws_cognito_user_pools
+  deleteRolePermissions(condition: ModelRolePermissionsConditionInput, input: DeleteRolePermissionsInput!): RolePermissions
+  deleteSubcontractor(condition: ModelSubcontractorConditionInput, input: DeleteSubcontractorInput!): Subcontractor @aws_api_key @aws_cognito_user_pools
+  deleteSubcontractorContact(condition: ModelSubcontractorContactConditionInput, input: DeleteSubcontractorContactInput!): SubcontractorContact @aws_api_key @aws_cognito_user_pools
+  deleteUser(condition: ModelUserConditionInput, input: DeleteUserInput!): User @aws_api_key
+  deleteUserRole(condition: ModelUserRoleConditionInput, input: DeleteUserRoleInput!): UserRole
+  updateJob(condition: ModelJobConditionInput, input: UpdateJobInput!): Job @aws_api_key @aws_cognito_user_pools
+  updateJobGeofence(condition: ModelJobGeofenceConditionInput, input: UpdateJobGeofenceInput!): JobGeofence @aws_api_key @aws_cognito_user_pools
+  updateRolePermissions(condition: ModelRolePermissionsConditionInput, input: UpdateRolePermissionsInput!): RolePermissions
+  updateSubcontractor(condition: ModelSubcontractorConditionInput, input: UpdateSubcontractorInput!): Subcontractor @aws_api_key @aws_cognito_user_pools
+  updateSubcontractorContact(condition: ModelSubcontractorContactConditionInput, input: UpdateSubcontractorContactInput!): SubcontractorContact @aws_api_key @aws_cognito_user_pools
+  updateUser(condition: ModelUserConditionInput, input: UpdateUserInput!): User @aws_api_key @aws_cognito_user_pools
+  updateUserRole(condition: ModelUserRoleConditionInput, input: UpdateUserRoleInput!): UserRole
+}
+
+type Query {
+  getJob(id: ID!): Job @aws_api_key @aws_cognito_user_pools
+  getJobGeofence(id: ID!): JobGeofence @aws_api_key @aws_cognito_user_pools
+  getRolePermissions(id: ID!): RolePermissions
+  getSubcontractor(id: ID!): Subcontractor @aws_api_key @aws_cognito_user_pools
+  getSubcontractorContact(id: ID!): SubcontractorContact @aws_api_key @aws_cognito_user_pools
+  getUser(id: ID!): User @aws_api_key @aws_cognito_user_pools
+  getUserRole(id: ID!): UserRole
+  jobGeofencesByJobId(filter: ModelJobGeofenceFilterInput, jobId: ID!, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelJobGeofenceConnection @aws_api_key @aws_cognito_user_pools
+  jobsBySubcontractorId(filter: ModelJobFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection, subcontractorId: ID!): ModelJobConnection @aws_api_key @aws_cognito_user_pools
+  listJobGeofences(filter: ModelJobGeofenceFilterInput, limit: Int, nextToken: String): ModelJobGeofenceConnection @aws_api_key @aws_cognito_user_pools
+  listJobs(filter: ModelJobFilterInput, limit: Int, nextToken: String): ModelJobConnection @aws_api_key @aws_cognito_user_pools
+  listRolePermissions(filter: ModelRolePermissionsFilterInput, limit: Int, nextToken: String): ModelRolePermissionsConnection
+  listSubcontractorContacts(filter: ModelSubcontractorContactFilterInput, limit: Int, nextToken: String): ModelSubcontractorContactConnection @aws_api_key @aws_cognito_user_pools
+  listSubcontractors(filter: ModelSubcontractorFilterInput, limit: Int, nextToken: String): ModelSubcontractorConnection @aws_api_key @aws_cognito_user_pools
+  listUserRoles(filter: ModelUserRoleFilterInput, limit: Int, nextToken: String): ModelUserRoleConnection
+  listUsers(filter: ModelUserFilterInput, limit: Int, nextToken: String): ModelUserConnection @aws_api_key @aws_cognito_user_pools
+  rolePermissionsByRoleId(filter: ModelRolePermissionsFilterInput, limit: Int, nextToken: String, roleId: ID!, sortDirection: ModelSortDirection): ModelRolePermissionsConnection
+  subcontractorContactsBySubcontractorId(filter: ModelSubcontractorContactFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection, subcontractorId: ID!): ModelSubcontractorContactConnection @aws_api_key @aws_cognito_user_pools
+  usersByUserPoolId(filter: ModelUserFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection, userPoolId: String!): ModelUserConnection @aws_api_key @aws_cognito_user_pools
+}
+
+type RolePermissions {
+  actions: [UserRoleActionEnum]
+  createdAt: AWSDateTime!
+  id: ID!
+  roleId: ID!
+  subject: UserRoleSubjectEnum!
+  updatedAt: AWSDateTime!
+}
+
+type Subcontractor @aws_api_key @aws_cognito_user_pools {
+  code: String!
+  companyName: String!
+  contacts(filter: ModelSubcontractorContactFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelSubcontractorContactConnection
+  createdAt: AWSDateTime!
+  id: ID!
+  linkedJobs(filter: ModelJobFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelJobConnection
+  phone: String
+  type: String
+  updatedAt: AWSDateTime!
+  website: String
+}
+
+type SubcontractorContact @aws_api_key @aws_cognito_user_pools {
+  createdAt: AWSDateTime!
+  email: String!
+  firstName: String!
+  id: ID!
+  isPrimary: Boolean
+  lastName: String!
+  mobile: String
+  phone: String
+  subcontractorId: ID!
+  title: String
+  updatedAt: AWSDateTime!
+}
+
+type Subscription {
+  onCreateJob(filter: ModelSubscriptionJobFilterInput): Job @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["createJob"])
+  onCreateJobGeofence(filter: ModelSubscriptionJobGeofenceFilterInput): JobGeofence @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["createJobGeofence"])
+  onCreateRolePermissions(filter: ModelSubscriptionRolePermissionsFilterInput): RolePermissions @aws_subscribe(mutations : ["createRolePermissions"])
+  onCreateSubcontractor(filter: ModelSubscriptionSubcontractorFilterInput): Subcontractor @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["createSubcontractor"])
+  onCreateSubcontractorContact(filter: ModelSubscriptionSubcontractorContactFilterInput): SubcontractorContact @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["createSubcontractorContact"])
+  onCreateUser(filter: ModelSubscriptionUserFilterInput): User @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["createUser"])
+  onCreateUserRole(filter: ModelSubscriptionUserRoleFilterInput): UserRole @aws_subscribe(mutations : ["createUserRole"])
+  onDeleteJob(filter: ModelSubscriptionJobFilterInput): Job @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["deleteJob"])
+  onDeleteJobGeofence(filter: ModelSubscriptionJobGeofenceFilterInput): JobGeofence @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["deleteJobGeofence"])
+  onDeleteRolePermissions(filter: ModelSubscriptionRolePermissionsFilterInput): RolePermissions @aws_subscribe(mutations : ["deleteRolePermissions"])
+  onDeleteSubcontractor(filter: ModelSubscriptionSubcontractorFilterInput): Subcontractor @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["deleteSubcontractor"])
+  onDeleteSubcontractorContact(filter: ModelSubscriptionSubcontractorContactFilterInput): SubcontractorContact @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["deleteSubcontractorContact"])
+  onDeleteUser(filter: ModelSubscriptionUserFilterInput): User @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["deleteUser"])
+  onDeleteUserRole(filter: ModelSubscriptionUserRoleFilterInput): UserRole @aws_subscribe(mutations : ["deleteUserRole"])
+  onUpdateJob(filter: ModelSubscriptionJobFilterInput): Job @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["updateJob"])
+  onUpdateJobGeofence(filter: ModelSubscriptionJobGeofenceFilterInput): JobGeofence @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["updateJobGeofence"])
+  onUpdateRolePermissions(filter: ModelSubscriptionRolePermissionsFilterInput): RolePermissions @aws_subscribe(mutations : ["updateRolePermissions"])
+  onUpdateSubcontractor(filter: ModelSubscriptionSubcontractorFilterInput): Subcontractor @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["updateSubcontractor"])
+  onUpdateSubcontractorContact(filter: ModelSubscriptionSubcontractorContactFilterInput): SubcontractorContact @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["updateSubcontractorContact"])
+  onUpdateUser(filter: ModelSubscriptionUserFilterInput): User @aws_api_key @aws_cognito_user_pools @aws_subscribe(mutations : ["updateUser"])
+  onUpdateUserRole(filter: ModelSubscriptionUserRoleFilterInput): UserRole @aws_subscribe(mutations : ["updateUserRole"])
+}
+
+type User @aws_api_key @aws_cognito_user_pools {
+  company: String!
+  createdAt: AWSDateTime!
+  email: String!
+  id: ID!
+  name: String!
+  phone: String
+  role: UserRole
+  roleId: ID
+  status: UserStatusEnum
+  updatedAt: AWSDateTime!
+  userPoolId: String!
+}
+
+type UserRole {
+  cognitoGroupName: String!
+  createdAt: AWSDateTime!
+  description: String
+  id: ID!
+  name: String!
+  permissions(filter: ModelRolePermissionsFilterInput, limit: Int, nextToken: String, sortDirection: ModelSortDirection): ModelRolePermissionsConnection
+  updatedAt: AWSDateTime!
+}
+
+enum GeofenceTypeEnum {
+  CIRCLE
+  POLYGON
+  RECTANGLE
+}
+
+enum JobStatusEnum {
+  ACTIVE
+  COMPLETED
+  INACTIVE
+}
+
+enum ModelAttributeTypes {
+  _null
+  binary
+  binarySet
+  bool
+  list
+  map
+  number
+  numberSet
+  string
+  stringSet
+}
+
+enum ModelSortDirection {
+  ASC
+  DESC
+}
+
+enum UserRoleActionEnum {
+  CREATE
+  DELETE
+  READ
+  UPDATE
+}
+
+enum UserRoleSubjectEnum {
+  JOBS
+  OVERVIEW
+  SUBCONTRACTORS
+  USERS
+}
+
+enum UserStatusEnum {
+  APPROVED
+  DECLINED
+  DISABLED
+  PENDING
+}
+
+input CoordinatesInput {
+  position: [LatLngInput]
+  radius: Float
+}
+
+input CreateJobGeofenceInput {
+  coordinates: CoordinatesInput
+  id: ID
+  jobId: ID!
+  name: String
+  type: GeofenceTypeEnum
+}
+
+input CreateJobInput {
+  county: String!
+  description: String
+  id: ID
+  jobNo: String!
+  jobsiteAddress: String!
+  managerId: ID!
+  name: String!
+  status: JobStatusEnum!
+  subcontractorId: ID
+}
+
+input CreateRolePermissionsInput {
+  actions: [UserRoleActionEnum]
+  id: ID
+  roleId: ID!
+  subject: UserRoleSubjectEnum!
+}
+
+input CreateSubcontractorContactInput {
+  email: String!
+  firstName: String!
+  id: ID
+  isPrimary: Boolean
+  lastName: String!
+  mobile: String
+  phone: String
+  subcontractorId: ID!
+  title: String
+}
+
+input CreateSubcontractorInput {
+  code: String!
+  companyName: String!
+  id: ID
+  phone: String
+  type: String
+  website: String
+}
+
+input CreateUserInput {
+  company: String!
+  email: String!
+  id: ID
+  name: String!
+  phone: String
+  roleId: ID
+  status: UserStatusEnum
+  userPoolId: String!
+}
+
+input CreateUserRoleInput {
+  cognitoGroupName: String!
+  description: String
+  id: ID
+  name: String!
+}
+
+input DeleteJobGeofenceInput {
+  id: ID!
+}
+
+input DeleteJobInput {
+  id: ID!
+}
+
+input DeleteRolePermissionsInput {
+  id: ID!
+}
+
+input DeleteSubcontractorContactInput {
+  id: ID!
+}
+
+input DeleteSubcontractorInput {
+  id: ID!
+}
+
+input DeleteUserInput {
+  id: ID!
+}
+
+input DeleteUserRoleInput {
+  id: ID!
+}
+
+input LatLngInput {
+  lat: Float!
+  lng: Float!
+}
+
+input ModelBooleanInput {
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  eq: Boolean
+  ne: Boolean
+}
+
+input ModelFloatInput {
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  between: [Float]
+  eq: Float
+  ge: Float
+  gt: Float
+  le: Float
+  lt: Float
+  ne: Float
+}
+
+input ModelGeofenceTypeEnumInput {
+  eq: GeofenceTypeEnum
+  ne: GeofenceTypeEnum
+}
+
+input ModelIDInput {
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  beginsWith: ID
+  between: [ID]
+  contains: ID
+  eq: ID
+  ge: ID
+  gt: ID
+  le: ID
+  lt: ID
+  ne: ID
+  notContains: ID
+  size: ModelSizeInput
+}
+
+input ModelIntInput {
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  between: [Int]
+  eq: Int
+  ge: Int
+  gt: Int
+  le: Int
+  lt: Int
+  ne: Int
+}
+
+input ModelJobConditionInput {
+  and: [ModelJobConditionInput]
+  county: ModelStringInput
+  createdAt: ModelStringInput
+  description: ModelStringInput
+  jobNo: ModelStringInput
+  jobsiteAddress: ModelStringInput
+  managerId: ModelIDInput
+  name: ModelStringInput
+  not: ModelJobConditionInput
+  or: [ModelJobConditionInput]
+  status: ModelJobStatusEnumInput
+  subcontractorId: ModelIDInput
+  updatedAt: ModelStringInput
+}
+
+input ModelJobFilterInput {
+  and: [ModelJobFilterInput]
+  county: ModelStringInput
+  createdAt: ModelStringInput
+  description: ModelStringInput
+  id: ModelIDInput
+  jobNo: ModelStringInput
+  jobsiteAddress: ModelStringInput
+  managerId: ModelIDInput
+  name: ModelStringInput
+  not: ModelJobFilterInput
+  or: [ModelJobFilterInput]
+  status: ModelJobStatusEnumInput
+  subcontractorId: ModelIDInput
+  updatedAt: ModelStringInput
+}
+
+input ModelJobGeofenceConditionInput {
+  and: [ModelJobGeofenceConditionInput]
+  createdAt: ModelStringInput
+  jobId: ModelIDInput
+  name: ModelStringInput
+  not: ModelJobGeofenceConditionInput
+  or: [ModelJobGeofenceConditionInput]
+  type: ModelGeofenceTypeEnumInput
+  updatedAt: ModelStringInput
+}
+
+input ModelJobGeofenceFilterInput {
+  and: [ModelJobGeofenceFilterInput]
+  createdAt: ModelStringInput
+  id: ModelIDInput
+  jobId: ModelIDInput
+  name: ModelStringInput
+  not: ModelJobGeofenceFilterInput
+  or: [ModelJobGeofenceFilterInput]
+  type: ModelGeofenceTypeEnumInput
+  updatedAt: ModelStringInput
+}
+
+input ModelJobStatusEnumInput {
+  eq: JobStatusEnum
+  ne: JobStatusEnum
+}
+
+input ModelRolePermissionsConditionInput {
+  actions: ModelUserRoleActionEnumListInput
+  and: [ModelRolePermissionsConditionInput]
+  createdAt: ModelStringInput
+  not: ModelRolePermissionsConditionInput
+  or: [ModelRolePermissionsConditionInput]
+  roleId: ModelIDInput
+  subject: ModelUserRoleSubjectEnumInput
+  updatedAt: ModelStringInput
+}
+
+input ModelRolePermissionsFilterInput {
+  actions: ModelUserRoleActionEnumListInput
+  and: [ModelRolePermissionsFilterInput]
+  createdAt: ModelStringInput
+  id: ModelIDInput
+  not: ModelRolePermissionsFilterInput
+  or: [ModelRolePermissionsFilterInput]
+  roleId: ModelIDInput
+  subject: ModelUserRoleSubjectEnumInput
+  updatedAt: ModelStringInput
+}
+
+input ModelSizeInput {
+  between: [Int]
+  eq: Int
+  ge: Int
+  gt: Int
+  le: Int
+  lt: Int
+  ne: Int
+}
+
+input ModelStringInput {
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  beginsWith: String
+  between: [String]
+  contains: String
+  eq: String
+  ge: String
+  gt: String
+  le: String
+  lt: String
+  ne: String
+  notContains: String
+  size: ModelSizeInput
+}
+
+input ModelSubcontractorConditionInput {
+  and: [ModelSubcontractorConditionInput]
+  code: ModelStringInput
+  companyName: ModelStringInput
+  createdAt: ModelStringInput
+  not: ModelSubcontractorConditionInput
+  or: [ModelSubcontractorConditionInput]
+  phone: ModelStringInput
+  type: ModelStringInput
+  updatedAt: ModelStringInput
+  website: ModelStringInput
+}
+
+input ModelSubcontractorContactConditionInput {
+  and: [ModelSubcontractorContactConditionInput]
+  createdAt: ModelStringInput
+  email: ModelStringInput
+  firstName: ModelStringInput
+  isPrimary: ModelBooleanInput
+  lastName: ModelStringInput
+  mobile: ModelStringInput
+  not: ModelSubcontractorContactConditionInput
+  or: [ModelSubcontractorContactConditionInput]
+  phone: ModelStringInput
+  subcontractorId: ModelIDInput
+  title: ModelStringInput
+  updatedAt: ModelStringInput
+}
+
+input ModelSubcontractorContactFilterInput {
+  and: [ModelSubcontractorContactFilterInput]
+  createdAt: ModelStringInput
+  email: ModelStringInput
+  firstName: ModelStringInput
+  id: ModelIDInput
+  isPrimary: ModelBooleanInput
+  lastName: ModelStringInput
+  mobile: ModelStringInput
+  not: ModelSubcontractorContactFilterInput
+  or: [ModelSubcontractorContactFilterInput]
+  phone: ModelStringInput
+  subcontractorId: ModelIDInput
+  title: ModelStringInput
+  updatedAt: ModelStringInput
+}
+
+input ModelSubcontractorFilterInput {
+  and: [ModelSubcontractorFilterInput]
+  code: ModelStringInput
+  companyName: ModelStringInput
+  createdAt: ModelStringInput
+  id: ModelIDInput
+  not: ModelSubcontractorFilterInput
+  or: [ModelSubcontractorFilterInput]
+  phone: ModelStringInput
+  type: ModelStringInput
+  updatedAt: ModelStringInput
+  website: ModelStringInput
+}
+
+input ModelSubscriptionBooleanInput {
+  eq: Boolean
+  ne: Boolean
+}
+
+input ModelSubscriptionFloatInput {
+  between: [Float]
+  eq: Float
+  ge: Float
+  gt: Float
+  in: [Float]
+  le: Float
+  lt: Float
+  ne: Float
+  notIn: [Float]
+}
+
+input ModelSubscriptionIDInput {
+  beginsWith: ID
+  between: [ID]
+  contains: ID
+  eq: ID
+  ge: ID
+  gt: ID
+  in: [ID]
+  le: ID
+  lt: ID
+  ne: ID
+  notContains: ID
+  notIn: [ID]
+}
+
+input ModelSubscriptionIntInput {
+  between: [Int]
+  eq: Int
+  ge: Int
+  gt: Int
+  in: [Int]
+  le: Int
+  lt: Int
+  ne: Int
+  notIn: [Int]
+}
+
+input ModelSubscriptionJobFilterInput {
+  and: [ModelSubscriptionJobFilterInput]
+  county: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  description: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  jobNo: ModelSubscriptionStringInput
+  jobsiteAddress: ModelSubscriptionStringInput
+  managerId: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  or: [ModelSubscriptionJobFilterInput]
+  status: ModelSubscriptionStringInput
+  subcontractorId: ModelSubscriptionIDInput
+  updatedAt: ModelSubscriptionStringInput
+}
+
+input ModelSubscriptionJobGeofenceFilterInput {
+  and: [ModelSubscriptionJobGeofenceFilterInput]
+  createdAt: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  jobId: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  or: [ModelSubscriptionJobGeofenceFilterInput]
+  type: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+}
+
+input ModelSubscriptionRolePermissionsFilterInput {
+  actions: ModelSubscriptionStringInput
+  and: [ModelSubscriptionRolePermissionsFilterInput]
+  createdAt: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  or: [ModelSubscriptionRolePermissionsFilterInput]
+  roleId: ModelSubscriptionIDInput
+  subject: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+}
+
+input ModelSubscriptionStringInput {
+  beginsWith: String
+  between: [String]
+  contains: String
+  eq: String
+  ge: String
+  gt: String
+  in: [String]
+  le: String
+  lt: String
+  ne: String
+  notContains: String
+  notIn: [String]
+}
+
+input ModelSubscriptionSubcontractorContactFilterInput {
+  and: [ModelSubscriptionSubcontractorContactFilterInput]
+  createdAt: ModelSubscriptionStringInput
+  email: ModelSubscriptionStringInput
+  firstName: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  isPrimary: ModelSubscriptionBooleanInput
+  lastName: ModelSubscriptionStringInput
+  mobile: ModelSubscriptionStringInput
+  or: [ModelSubscriptionSubcontractorContactFilterInput]
+  phone: ModelSubscriptionStringInput
+  subcontractorId: ModelSubscriptionIDInput
+  title: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+}
+
+input ModelSubscriptionSubcontractorFilterInput {
+  and: [ModelSubscriptionSubcontractorFilterInput]
+  code: ModelSubscriptionStringInput
+  companyName: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  or: [ModelSubscriptionSubcontractorFilterInput]
+  phone: ModelSubscriptionStringInput
+  type: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  website: ModelSubscriptionStringInput
+}
+
+input ModelSubscriptionUserFilterInput {
+  and: [ModelSubscriptionUserFilterInput]
+  company: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  email: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  or: [ModelSubscriptionUserFilterInput]
+  phone: ModelSubscriptionStringInput
+  roleId: ModelSubscriptionIDInput
+  status: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  userPoolId: ModelSubscriptionStringInput
+}
+
+input ModelSubscriptionUserRoleFilterInput {
+  and: [ModelSubscriptionUserRoleFilterInput]
+  cognitoGroupName: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  description: ModelSubscriptionStringInput
+  id: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  or: [ModelSubscriptionUserRoleFilterInput]
+  updatedAt: ModelSubscriptionStringInput
+}
+
+input ModelUserConditionInput {
+  and: [ModelUserConditionInput]
+  company: ModelStringInput
+  createdAt: ModelStringInput
+  email: ModelStringInput
+  name: ModelStringInput
+  not: ModelUserConditionInput
+  or: [ModelUserConditionInput]
+  phone: ModelStringInput
+  roleId: ModelIDInput
+  status: ModelUserStatusEnumInput
+  updatedAt: ModelStringInput
+  userPoolId: ModelStringInput
+}
+
+input ModelUserFilterInput {
+  and: [ModelUserFilterInput]
+  company: ModelStringInput
+  createdAt: ModelStringInput
+  email: ModelStringInput
+  id: ModelIDInput
+  name: ModelStringInput
+  not: ModelUserFilterInput
+  or: [ModelUserFilterInput]
+  phone: ModelStringInput
+  roleId: ModelIDInput
+  status: ModelUserStatusEnumInput
+  updatedAt: ModelStringInput
+  userPoolId: ModelStringInput
+}
+
+input ModelUserRoleActionEnumListInput {
+  contains: UserRoleActionEnum
+  eq: [UserRoleActionEnum]
+  ne: [UserRoleActionEnum]
+  notContains: UserRoleActionEnum
+}
+
+input ModelUserRoleConditionInput {
+  and: [ModelUserRoleConditionInput]
+  cognitoGroupName: ModelStringInput
+  createdAt: ModelStringInput
+  description: ModelStringInput
+  name: ModelStringInput
+  not: ModelUserRoleConditionInput
+  or: [ModelUserRoleConditionInput]
+  updatedAt: ModelStringInput
+}
+
+input ModelUserRoleFilterInput {
+  and: [ModelUserRoleFilterInput]
+  cognitoGroupName: ModelStringInput
+  createdAt: ModelStringInput
+  description: ModelStringInput
+  id: ModelIDInput
+  name: ModelStringInput
+  not: ModelUserRoleFilterInput
+  or: [ModelUserRoleFilterInput]
+  updatedAt: ModelStringInput
+}
+
+input ModelUserRoleSubjectEnumInput {
+  eq: UserRoleSubjectEnum
+  ne: UserRoleSubjectEnum
+}
+
+input ModelUserStatusEnumInput {
+  eq: UserStatusEnum
+  ne: UserStatusEnum
+}
+
+input UpdateJobGeofenceInput {
+  coordinates: CoordinatesInput
+  id: ID!
+  jobId: ID
+  name: String
+  type: GeofenceTypeEnum
+}
+
+input UpdateJobInput {
+  county: String
+  description: String
+  id: ID!
+  jobNo: String
+  jobsiteAddress: String
+  managerId: ID
+  name: String
+  status: JobStatusEnum
+  subcontractorId: ID
+}
+
+input UpdateRolePermissionsInput {
+  actions: [UserRoleActionEnum]
+  id: ID!
+  roleId: ID
+  subject: UserRoleSubjectEnum
+}
+
+input UpdateSubcontractorContactInput {
+  email: String
+  firstName: String
+  id: ID!
+  isPrimary: Boolean
+  lastName: String
+  mobile: String
+  phone: String
+  subcontractorId: ID
+  title: String
+}
+
+input UpdateSubcontractorInput {
+  code: String
+  companyName: String
+  id: ID!
+  phone: String
+  type: String
+  website: String
+}
+
+input UpdateUserInput {
+  company: String
+  email: String
+  id: ID!
+  name: String
+  phone: String
+  roleId: ID
+  status: UserStatusEnum
+  userPoolId: String
+}
+
+input UpdateUserRoleInput {
+  cognitoGroupName: String
+  description: String
+  id: ID!
+  name: String
+}
+
+
+admin
+mUCr5Trfhwv8eoK1MOse
